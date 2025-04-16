@@ -1,6 +1,6 @@
 import networkx as nx
 from src.utils import polygon_matching_utils
-from src.utils import utils
+from src.utils import io
 
 
 # index to shapefile

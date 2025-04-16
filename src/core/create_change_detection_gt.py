@@ -1,5 +1,5 @@
 import argparse
-from src.utils import utils, analysis_utils, polygon_matching_algorithm, polygon_matching_utils
+from src.utils import io, analysis_utils, polygon_matching_algorithm, polygon_matching_utils
 from src.common.path_loader import load_building_paths
 
 

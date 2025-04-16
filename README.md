@@ -115,7 +115,8 @@ python src/core/create_change_detection_gt.py --region suseo --year 2022 --previ
 - `--year`: 기준 연도 (기본값: 2022)
 - `--previous_year`: 과거 연도 (기본값: 2020)
 - `--cut_threshold`: 그래프 컷 임계값 (기본값: 0.05)
-- `--cd_threshold`: 변화 판별 임계값 (기본값: 0.95)
+- `--cd_threshold`: 건물 변화 판별 임계값 (기본값: 0.7) - (GT 생성 시 0.95)
+- `--bd_threshold`: 건물 탐지 판별 임계값 (기본값: 0.6)
 
 ---
 

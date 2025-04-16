@@ -1,0 +1,42 @@
+{
+    "building": {
+        "_comment": "Building Change Detection Path PART",
+
+        "_": "INPUT 데이터",
+        "building_inference": "Data/building/input/building inference/{region}/{year}",
+        "previous_building_digital_map": "./Data/building/input/previous building digital map/{region}/{previous_year}",
+
+        "__": "평가 데이터",
+        "GT_of_building_detection": "./Data/building/evaluation/ground truth/building detection GT/{region}/{year}",
+        "GT_of_building_change_detection_prev": "./Data/building/evaluation/ground truth/building change detection GT/{region}/{previous_year}_{year}/prev",
+        "GT_of_building_change_detection_cur": "./Data/building/evaluation/ground truth/building change detection GT/{region}/{previous_year}_{year}/current",
+        "GT_of_building_change_detection_anl": "./Data/building/evaluation/ground truth/building change detection GT/{region}/{previous_year}_{year}",
+
+        "___": "Evaluation 결과 데이터",
+        "evaluation_of_building_detection_gt": "./Data/building/evaluation/evaluation result/evaluation of building detection/{region}/{year}/gt",
+        "evaluation_of_building_detection_predict": "./Data/building/evaluation/evaluation result/evaluation of building detection/{region}/{year}/predict",
+        "evaluation_of_building_detection_anl": "./Data/building/evaluation/evaluation result/evaluation of building detection/{region}/{year}",
+        "evaluation_of_building_change_detection": "./Data/building/evaluation/evaluation result/evaluation of building change detection/{region}/{previous_year}_{year}",
+
+        "____": "OUTPUT 데이터",
+        "building_change_detection_result_prev": "./Data/building/output/building change detection result/{region}/{previous_year}_{year}/prev",
+        "building_change_detection_result_cur": "./Data/building/output/building change detection result/{region}/{previous_year}_{year}/cur",
+        "building_change_detection_result_anl": "./Data/building/output/building change detection result/{region}/{previous_year}_{year}",
+
+        "_____": "분류 전 기타 파일들"
+    },
+
+    "road": {
+        "_comment": "Road Change Detection Path PART",
+
+        "_": "INPUT 데이터",
+
+        "__": "평가 데이터",
+
+        "___": "Evaluation 결과 데이터",
+
+        "____": "OUTPUT 데이터",
+
+        "_____": "분류 전 기타 파일들"
+    }
+}

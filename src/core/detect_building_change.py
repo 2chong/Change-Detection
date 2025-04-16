@@ -19,9 +19,9 @@ def cd_pipeline(dmap_path, seg_path, dmap_output_path, seg_output_path, anl_outp
     dmap = assign_class(dmap, cd_threshold)
     seg = assign_class(seg, cd_threshold)
     report = analysis_utils.analysis_pipeline(dmap, seg)
-    utils.export_file(dmap, dmap_output_path, 'dmap')
-    utils.export_file(seg, seg_output_path, 'seg')
-    utils.export_file(report, anl_output_path, 'analysis_result')
+    io.export_file(dmap, dmap_output_path, 'dmap')
+    io.export_file(seg, seg_output_path, 'seg')
+    io.export_file(report, anl_output_path, 'analysis_result')
 
 
 def main():

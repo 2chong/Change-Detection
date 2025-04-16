@@ -4,6 +4,7 @@ from shapely.ops import unary_union
 import numpy as np
 import geopandas as gpd
 
+
 def all_nonempty_subsets(lst):
     return list(chain.from_iterable(combinations(lst, r) for r in range(1, len(lst)+1)))
 

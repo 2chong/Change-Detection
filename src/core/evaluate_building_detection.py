@@ -56,10 +56,10 @@ def evaluate_bd_pipeline(dmap_path, seg_path, dmap_output_path, seg_output_path,
     dmap, seg = assign_class(dmap, seg, bd_threshold)
     result = evaluate_bd(dmap, seg, bd_threshold)
     anl_result = analysis_utils.report_bd(dmap, seg)
-    utils.export_file(dmap, dmap_output_path, 'dmap')
-    utils.export_file(seg, seg_output_path, 'seg')
-    utils.export_file(anl_result, anl_output_path, 'bd_anl_result')
-    utils.export_file(result, anl_output_path, 'bd_evaluate_result')
+    io.export_file(dmap, dmap_output_path, 'dmap')
+    io.export_file(seg, seg_output_path, 'seg')
+    io.export_file(anl_result, anl_output_path, 'bd_anl_result')
+    io.export_file(result, anl_output_path, 'bd_evaluate_result')
 
 
 def main():

@@ -16,9 +16,9 @@ def cd_pipeline(dmap1_path, dmap2_path, prev_output_path, cur_output_path, anl_o
     dmap1 = assign_class(dmap1, cd_threshold)
     dmap2 = assign_class(dmap2, cd_threshold)
     report = analysis_utils.analysis_pipeline(dmap1, dmap2)
-    utils.export_file(dmap1, prev_output_path, 'prev_dmap_add_error')
-    utils.export_file(dmap2, cur_output_path, 'cur_dmap_add_error')
-    utils.export_file(report, anl_output_path, 'analysis_result')
+    io.export_file(dmap1, prev_output_path, 'prev_dmap_add_error')
+    io.export_file(dmap2, cur_output_path, 'cur_dmap_add_error')
+    io.export_file(report, anl_output_path, 'analysis_result')
 
 
 def main():

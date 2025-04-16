@@ -11,6 +11,7 @@ refine_types = {
     9: "기타"
 }
 
+
 def show_refine_types():
     """
     정제할 유형을 사용자에게 보여줍니다.

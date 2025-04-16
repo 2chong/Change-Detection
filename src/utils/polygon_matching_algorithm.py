@@ -127,8 +127,8 @@ def calculate_all_combination_metrics(poly1, poly2, components_dict, cut_links):
 
 
 def algorithm_pipeline(poly1_path, poly2_path, output_path, cut_threshold):
-    poly1 = utils.import_shapefile(poly1_path)
-    poly2 = utils.import_shapefile(poly2_path)
+    poly1 = io.import_shapefile(poly1_path)
+    poly2 = io.import_shapefile(poly2_path)
     poly1, poly2, joined = indexing(poly1, poly2)
     graph = build_graph(joined)
     graph = add_energy_to_links(poly1, poly2, graph)

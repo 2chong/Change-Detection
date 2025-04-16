@@ -58,14 +58,14 @@ def evaluate_cd(confusion_matrix):
 
 
 def cd_evaluate_pipeline(gt_prev, gt_cur, cd_prev, cd_cur, output_path):
-    gt_prev = utils.import_shapefile(gt_prev, crs=5186)
-    gt_cur = utils.import_shapefile(gt_cur, crs=5186)
-    cd_prev = utils.import_shapefile(cd_prev, crs=5186)
-    cd_cur = utils.import_shapefile(cd_cur, crs=5186)
+    gt_prev = io.import_shapefile(gt_prev, crs=5186)
+    gt_cur = io.import_shapefile(gt_cur, crs=5186)
+    cd_prev = io.import_shapefile(cd_prev, crs=5186)
+    cd_cur = io.import_shapefile(cd_cur, crs=5186)
     confusion_matrix = decide_confusion_matrix(gt_prev, gt_cur, cd_prev, cd_cur)
     cd_evaluate_report = evaluate_cd(confusion_matrix)
-    utils.export_file(confusion_matrix, output_path, 'cd_evaluate_result')
-    utils.export_file(cd_evaluate_report, output_path, 'cd_evaluate_result')
+    io.export_file(confusion_matrix, output_path, 'cd_evaluate_result')
+    io.export_file(cd_evaluate_report, output_path, 'cd_evaluate_result')
 
 
 def main():

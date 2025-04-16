@@ -1,0 +1,20 @@
+# VS Code, PyCharm 등의 IDE 설정
+.idea/
+
+# Python 가상환경
+.venv/
+venv/
+
+# Bytecode
+__pycache__/
+*.py[cod]
+
+# Log 파일
+*.log
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+
+# 환경 설정 파일 (원한다면)
+.env

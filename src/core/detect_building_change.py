@@ -18,6 +18,9 @@ def cd_pipeline(dmap_path, seg_path, dmap_output_path, seg_output_path, anl_outp
                           (dmap_path, seg_path, anl_output_path, cut_threshold))
     dmap = assign_class(dmap, cd_threshold)
     seg = assign_class(seg, cd_threshold)
+    dmap = polygon_matching_utils.bd_result_attach(dmap, seg)
+    dmap = dmap.rename(columns={"Relation": "rel_cd"})
+    seg = seg.rename(columns={"Relation": "rel_cd"})
     report = analysis_utils.analysis_pipeline(dmap, seg)
     io.export_file(dmap, dmap_output_path, 'dmap')
     io.export_file(seg, seg_output_path, 'seg')
@@ -37,8 +40,8 @@ def main():
     paths = load_building_paths(args.region, args.year, args.previous_year)
 
     cd_pipeline(
-        dmap_path=paths["previous_building_digital_map"],
-        seg_path=paths["building_inference"],
+        dmap_path=paths["GT_of_building_change_detection_prev"],
+        seg_path=paths["evaluation_of_building_detection_predict"],
         dmap_output_path=paths["building_change_detection_result_prev"],
         seg_output_path=paths["building_change_detection_result_cur"],
         anl_output_path=paths["building_change_detection_result_anl"],

@@ -12,13 +12,12 @@ def compare_gt_cd_remove_updated_unchanged(gt_prev, cd_prev):
     # poly1_idx 기준 join
     merged = pd.merge(gt_prev_sel, cd_prev_sel, on="poly1_idx", how="outer")
 
-    # poly1_idx → poly_idx 이름 변경
     merged = merged.rename(columns={"poly1_idx": "gt_idx"})
     merged['cd_idx'] = merged['gt_idx']
 
     # 매트릭스 열 초기화
-    merged["gt_matrix"] = ""
-    merged["cd_matrix"] = ""
+    merged["gt_status"] = ""
+    merged["pred_stat"] = ""
 
     # 조건에 따라 매트릭스 할당
     for idx, row in merged.iterrows():
@@ -28,11 +27,11 @@ def compare_gt_cd_remove_updated_unchanged(gt_prev, cd_prev):
         if pd.isna(gt) or pd.isna(cd):
             continue
         elif gt == cd:
-            merged.at[idx, "gt_matrix"] = "TP"
-            merged.at[idx, "cd_matrix"] = "TP"
+            merged.at[idx, "gt_status"] = "TP"
+            merged.at[idx, "pred_stat"] = "TP"
         else:
-            merged.at[idx, "gt_matrix"] = "FN"
-            merged.at[idx, "cd_matrix"] = "FP"
+            merged.at[idx, "gt_status"] = "FN"
+            merged.at[idx, "pred_stat"] = "FP"
 
     # GeoDataFrame으로 변환
     merged_gdf = gpd.GeoDataFrame(merged, geometry="geometry", crs=gt_prev.crs)
@@ -82,8 +81,8 @@ def compare_gt_cd_new(joined):
     # 초기화
     joined['gt_class'] = pd.Series(dtype='object')
     joined['cd_class'] = pd.Series(dtype='object')
-    joined['gt_matrix'] = pd.Series(dtype='object')
-    joined['cd_matrix'] = pd.Series(dtype='object')
+    joined['gt_status'] = pd.Series(dtype='object')
+    joined['pred_stat'] = pd.Series(dtype='object')
 
     # gt_class 설정: gt_idx가 존재하면 '신축'
     joined.loc[joined['gt_idx'].notna(), 'gt_class'] = '신축'
@@ -91,16 +90,49 @@ def compare_gt_cd_new(joined):
     # cd_class 설정: cd_idx가 존재하면 '신축'
     joined.loc[joined['cd_idx'].notna(), 'cd_class'] = '신축'
 
-    # 1. gt_idx가 NaN → cd_matrix = 'FP'
-    joined.loc[joined['gt_idx'].isna() & joined['cd_idx'].notna(), 'cd_matrix'] = 'FP'
+    # 1. gt_idx가 NaN → pred_stat = 'FP'
+    joined.loc[joined['gt_idx'].isna() & joined['cd_idx'].notna(), 'pred_stat'] = 'FP'
 
-    # 2. cd_idx가 NaN → gt_matrix = 'FN'
-    joined.loc[joined['cd_idx'].isna() & joined['gt_idx'].notna(), 'gt_matrix'] = 'FN'
+    # 2. cd_idx가 NaN → gt_status = 'FN'
+    joined.loc[joined['cd_idx'].isna() & joined['gt_idx'].notna(), 'gt_status'] = 'FN'
 
     # 3. 둘 다 존재 → TP
     cond_tp = joined['gt_idx'].notna() & joined['cd_idx'].notna()
-    joined.loc[cond_tp, ['gt_matrix', 'cd_matrix']] = 'TP'
+    joined.loc[cond_tp, ['gt_status', 'pred_stat']] = 'TP'
 
     return joined
 
 
+def evaluate_bd(dmap, seg, bd_threshold):
+    # dmap 기반 계산 (Recall 기준)
+    dmap_tp = (dmap['bd_status'] == 'TP').sum()
+    dmap_fn = (dmap['bd_status'] == 'FN').sum()
+    gt_total = dmap_tp + dmap_fn
+    recall = dmap_tp / gt_total if gt_total > 0 else 0
+
+    # seg 기반 계산 (Precision 기준)
+    seg_tp = (seg['bd_status'] == 'TP').sum()
+    seg_fp = (seg['bd_status'] == 'FP').sum()
+    pred_total = seg_tp + seg_fp
+    precision = seg_tp / pred_total if pred_total > 0 else 0
+
+    # F1-score 계산
+    if precision + recall > 0:
+        f1_score = 2 * (precision * recall) / (precision + recall)
+    else:
+        f1_score = 0
+
+    # 결과 DataFrame
+    result = pd.DataFrame([{
+        "GT 수": gt_total,
+        "Pred 수": pred_total,
+        "TP": dmap_tp,
+        "FN": dmap_fn,
+        "FP": seg_fp,
+        "재현율": round(recall, 3),
+        "정밀도": round(precision, 3),
+        "F1-score": round(f1_score, 3),
+        "Threshold": bd_threshold
+    }])
+
+    return result

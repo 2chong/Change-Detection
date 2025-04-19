@@ -46,14 +46,14 @@ def run_pipeline(region, year, previous_year, selected_indices):
             0.05,
             0.95
         )
-        print(f"Dmap vs Dmap - 완료 ({time.time() - start_time:.2f}초)")
+        print(f"Create Building Change Detection GT - 완료 ({time.time() - start_time:.2f}초)")
 
     def detect_change():
         print(f"\n▶ 지역: {region} 시작")
         start_time = time.time()
         detect_building_change.cd_pipeline(
             paths['previous_building_digital_map'],
-            paths['building_inference'],
+            paths['evaluation_of_building_detection_predict'],
             paths['building_change_detection_result_prev'],
             paths['building_change_detection_result_cur'],
             paths['building_change_detection_result_anl'],
@@ -88,9 +88,9 @@ def run_pipeline(region, year, previous_year, selected_indices):
 
     pipeline_steps = [
         ("Evaluate Building Detection", detect_building),
-        ("Dmap vs Dmap", validate_change_detection),
         ("Detect Change", detect_change),
         ("Evaluate Change Detection", evaluate_change_detection),
+        ("Dmap vs Dmap", validate_change_detection),
         ("Detect Error", classify_dmap_error2)
     ]
 
@@ -109,9 +109,9 @@ gt_min_area, gt_max_area, gt_refine_categories, detection_threshold, detection_a
 
 pipeline_steps = [
     ("Evaluate Building Detection", None),
-    ("Dmap vs Dmap", None),
     ("Detect Change", None),
     ("Evaluate Change Detection", None),
+    ("Create Building Change Detection GT", None),
     ("Detect Error", None)
 ]
 selected_indices = pipeline_step_selector.get_selected_pipeline_indices(pipeline_steps)

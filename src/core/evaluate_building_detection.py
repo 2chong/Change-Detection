@@ -4,6 +4,7 @@ from src.utils import io
 from src.utils import analysis_utils
 from src.utils import polygon_matching_utils
 from src.utils import polygon_matching_algorithm
+from src.utils import evaluation_utils
 from src.common.path_loader import load_building_paths
 
 
@@ -15,49 +16,26 @@ def assign_class(dmap, seg, bd_threshold):
     return dmap, seg
 
 
-def evaluate_bd(dmap, seg, bd_threshold):
-    # dmap 기반 계산 (Recall 기준)
-    dmap_tp = (dmap['bd_class'] == 'TP').sum()
-    dmap_fn = (dmap['bd_class'] == 'FN').sum()
-    gt_total = dmap_tp + dmap_fn
-    recall = dmap_tp / gt_total if gt_total > 0 else 0
-
-    # seg 기반 계산 (Precision 기준)
-    seg_tp = (seg['bd_class'] == 'TP').sum()
-    seg_fp = (seg['bd_class'] == 'FP').sum()
-    pred_total = seg_tp + seg_fp
-    precision = seg_tp / pred_total if pred_total > 0 else 0
-
-    # F1-score 계산
-    if precision + recall > 0:
-        f1_score = 2 * (precision * recall) / (precision + recall)
-    else:
-        f1_score = 0
-
-    # 결과 DataFrame
-    result = pd.DataFrame([{
-        "GT 수": gt_total,
-        "Pred 수": pred_total,
-        "TP": dmap_tp,
-        "FN": dmap_fn,
-        "FP": seg_fp,
-        "재현율": round(recall, 3),
-        "정밀도": round(precision, 3),
-        "F1-score": round(f1_score, 3),
-        "Threshold": bd_threshold
-    }])
-
-    return result
-
-
 def evaluate_bd_pipeline(dmap_path, seg_path, dmap_output_path, seg_output_path, anl_output_path, cut_threshold, bd_threshold):
     _, dmap, seg = (polygon_matching_algorithm.algorithm_pipeline
                              (dmap_path, seg_path, anl_output_path, cut_threshold))
     dmap, seg = assign_class(dmap, seg, bd_threshold)
-    result = evaluate_bd(dmap, seg, bd_threshold)
+    cols_to_drop = [
+        'iou_nn', 'ol_pl1_nn', 'ol_pl2_nn',
+        'iou_1n', 'ol_pl1_1n', 'ol_pl2_1n',
+        'iou_n1', 'ol_pl1_n1', 'ol_pl2_n1',
+        'iou_11', 'ol_pl1_11', 'ol_pl2_11',
+        'comp_idx', 'poly1_set', 'poly2_set', 'cut_link'
+    ]
+
+    result = evaluation_utils.evaluate_bd(dmap, seg, bd_threshold)
     anl_result = analysis_utils.report_bd(dmap, seg)
-    io.export_file(dmap, dmap_output_path, 'dmap')
-    io.export_file(seg, seg_output_path, 'seg')
+    dmap = dmap.drop(columns=[col for col in cols_to_drop if col in dmap.columns])
+    seg = seg.drop(columns=[col for col in cols_to_drop if col in seg.columns])
+    dmap = dmap.rename(columns={"Relation": "rel_bd"})
+    seg = seg.rename(columns={"Relation": "rel_bd"})
+    io.export_file(dmap, dmap_output_path, 'gt')
+    io.export_file(seg, seg_output_path, 'predict')
     io.export_file(anl_result, anl_output_path, 'bd_anl_result')
     io.export_file(result, anl_output_path, 'bd_evaluate_result')
 

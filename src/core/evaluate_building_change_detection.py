@@ -2,6 +2,7 @@ import argparse
 import pandas as pd
 from src.utils import io
 from src.utils import evaluation_utils
+from src.utils import polygon_matching_utils
 from src.common.path_loader import load_building_paths
 
 
@@ -12,7 +13,8 @@ def decide_confusion_matrix(gt_prev, gt_cur, cd_prev, cd_cur):
     new = evaluation_utils.compare_gt_cd_new(new_temp)
     confusion_matrix = pd.concat([removed_updated_unchanged, new], ignore_index=True)
     confusion_matrix = confusion_matrix.sort_values(by='gt_idx', ascending=True).reset_index(drop=True)
-    return confusion_matrix
+    cd_prev, cd_cur = polygon_matching_utils.confusion_matrix_to_cd(cd_prev, cd_cur, confusion_matrix)
+    return confusion_matrix, cd_prev, cd_cur
 
 
 def evaluate_cd(confusion_matrix):
@@ -30,15 +32,15 @@ def evaluate_cd(confusion_matrix):
     for cls in all_classes:
         # GT 기준
         gt_group = confusion_matrix[confusion_matrix["gt_class"] == cls]
-        gt_tp = (gt_group["gt_matrix"] == "TP").sum()
-        gt_fn = (gt_group["gt_matrix"] == "FN").sum()
+        gt_tp = (gt_group["gt_status"] == "TP").sum()
+        gt_fn = (gt_group["gt_status"] == "FN").sum()
         gt_total = gt_tp + gt_fn
         recall = round(gt_tp / gt_total, 3) if gt_total > 0 else 0.0
 
         # CD 기준
         cd_group = confusion_matrix[confusion_matrix["cd_class"] == cls]
-        cd_tp = (cd_group["cd_matrix"] == "TP").sum()
-        cd_fp = (cd_group["cd_matrix"] == "FP").sum()
+        cd_tp = (cd_group["pred_stat"] == "TP").sum()
+        cd_fp = (cd_group["pred_stat"] == "FP").sum()
         cd_total = cd_tp + cd_fp
         precision = round(cd_tp / cd_total, 3) if cd_total > 0 else 0.0
 
@@ -57,13 +59,17 @@ def evaluate_cd(confusion_matrix):
     return df
 
 
-def cd_evaluate_pipeline(gt_prev, gt_cur, cd_prev, cd_cur, output_path):
-    gt_prev = io.import_shapefile(gt_prev, crs=5186)
-    gt_cur = io.import_shapefile(gt_cur, crs=5186)
-    cd_prev = io.import_shapefile(cd_prev, crs=5186)
-    cd_cur = io.import_shapefile(cd_cur, crs=5186)
-    confusion_matrix = decide_confusion_matrix(gt_prev, gt_cur, cd_prev, cd_cur)
+def cd_evaluate_pipeline(gt_prev_path, gt_cur_path, cd_prev_path, cd_cur_path, output_path):
+    gt_prev = io.import_shapefile(gt_prev_path, crs=5186)
+    gt_cur = io.import_shapefile(gt_cur_path, crs=5186)
+    cd_prev = io.import_shapefile(cd_prev_path, crs=5186)
+    cd_cur = io.import_shapefile(cd_cur_path, crs=5186)
+    confusion_matrix, cd_prev, cd_cur = decide_confusion_matrix(gt_prev, gt_cur, cd_prev, cd_cur)
+    cd_prev = polygon_matching_utils.reorder_columns_after_cut_link(cd_prev)
+    cd_cur = polygon_matching_utils.reorder_columns_after_cut_link(cd_cur)
     cd_evaluate_report = evaluate_cd(confusion_matrix)
+    io.export_file(cd_prev, cd_prev_path, 'dmap')
+    io.export_file(cd_cur, cd_cur_path, 'seg')
     io.export_file(confusion_matrix, output_path, 'cd_evaluate_result')
     io.export_file(cd_evaluate_report, output_path, 'cd_evaluate_result')
 
@@ -79,10 +85,10 @@ def main():
     paths = load_building_paths(args.region, args.year, args.previous_year)
 
     cd_evaluate_pipeline(
-        gt_prev=paths["GT_of_building_change_detection_prev"],
-        gt_cur=paths["GT_of_building_change_detection_cur"],
-        cd_prev=paths["building_change_detection_result_prev"],
-        cd_cur=paths["building_change_detection_result_cur"],
+        gt_prev_path=paths["GT_of_building_change_detection_prev"],
+        gt_cur_path=paths["GT_of_building_change_detection_cur"],
+        cd_prev_path=paths["building_change_detection_result_prev"],
+        cd_cur_path=paths["building_change_detection_result_cur"],
         output_path=paths["evaluation_of_building_change_detection"]
     )
 

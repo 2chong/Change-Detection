@@ -394,105 +394,322 @@ def outer_join(poly1, poly2, poly1_prefix="poly1", poly2_prefix="poly2"):
 
 
 def assign_bd_class_gt(poly, threshold):
-    bd_class = np.full(len(poly), np.nan, dtype=object)
+    bd_status = np.full(len(poly), np.nan, dtype=object)
 
     # 2. 조건별 분류
-    bd_class[np.where(poly['Relation'] == '1:0')[0]] = 'FN'
+    bd_status[np.where(poly['Relation'] == '1:0')[0]] = 'FN'
 
-    bd_class[np.where((poly['Relation'] == '1:1') & (poly['ol_pl1_nn'] > threshold))[0]] = 'TP'
-    bd_class[np.where((poly['Relation'] == '1:1') & (poly['ol_pl1_nn'] <= threshold))[0]] = 'FN'
+    bd_status[np.where((poly['Relation'] == '1:1') & (poly['iou_nn'] > threshold))[0]] = 'TP'
+    bd_status[np.where((poly['Relation'] == '1:1') & (poly['iou_nn'] <= threshold))[0]] = 'FN'
 
-    bd_class[np.where((poly['Relation'] == '1:N') & (poly['ol_pl1_n1'] > threshold))[0]] = 'TP'
-    bd_class[np.where((poly['Relation'] == '1:N') & (poly['ol_pl1_n1'] <= threshold))[0]] = 'FN'
+    bd_status[np.where((poly['Relation'] == '1:N') & (poly['iou_n1'] > threshold))[0]] = 'TP'
+    bd_status[np.where((poly['Relation'] == '1:N') & (poly['iou_n1'] <= threshold))[0]] = 'FN'
 
-    bd_class[np.where((poly['Relation'] == 'N:1') & (poly['ol_pl1_1n'] > threshold))[0]] = 'TP'
-    bd_class[np.where((poly['Relation'] == 'N:1') & (poly['ol_pl1_1n'] <= threshold))[0]] = 'FN'
+    bd_status[np.where((poly['Relation'] == 'N:1') & (poly['iou_1n'] > threshold))[0]] = 'TP'
+    bd_status[np.where((poly['Relation'] == 'N:1') & (poly['iou_1n'] <= threshold))[0]] = 'FN'
 
-    bd_class[np.where((poly['Relation'] == 'N:N') & (poly['ol_pl1_11'] > threshold))[0]] = 'TP'
-    bd_class[np.where((poly['Relation'] == 'N:N') & (poly['ol_pl1_11'] <= threshold))[0]] = 'FN'
+    bd_status[np.where((poly['Relation'] == 'N:N') & (poly['iou_11'] > threshold))[0]] = 'TP'
+    bd_status[np.where((poly['Relation'] == 'N:N') & (poly['iou_11'] <= threshold))[0]] = 'FN'
 
-    if 'bd_class' in poly.columns:
-        poly = poly.drop(columns=['bd_class'])
+    if 'bd_status' in poly.columns:
+        poly = poly.drop(columns=['bd_status'])
 
     relation_loc = poly.columns.get_loc('Relation')
-    poly.insert(loc=relation_loc + 1, column='bd_class', value=bd_class)
+    poly.insert(loc=relation_loc + 1, column='bd_status', value=bd_status)
     return poly
 
 
 def assign_bd_class_seg(poly, threshold):
-    bd_class = np.full(len(poly), np.nan, dtype=object)
+    bd_status = np.full(len(poly), np.nan, dtype=object)
 
     # 2. 조건별 분류
-    bd_class[np.where(poly['Relation'] == '0:1')[0]] = 'FP'
+    bd_status[np.where(poly['Relation'] == '0:1')[0]] = 'FP'
 
-    bd_class[np.where((poly['Relation'] == '1:1') & (poly['ol_pl1_nn'] > threshold))[0]] = 'TP'
-    bd_class[np.where((poly['Relation'] == '1:1') & (poly['ol_pl1_nn'] <= threshold))[0]] = 'FP'
+    bd_status[np.where((poly['Relation'] == '1:1') & (poly['iou_nn'] > threshold))[0]] = 'TP'
+    bd_status[np.where((poly['Relation'] == '1:1') & (poly['iou_nn'] <= threshold))[0]] = 'FP'
 
-    bd_class[np.where((poly['Relation'] == '1:N') & (poly['ol_pl1_n1'] > threshold))[0]] = 'TP'
-    bd_class[np.where((poly['Relation'] == '1:N') & (poly['ol_pl1_n1'] <= threshold))[0]] = 'FP'
+    bd_status[np.where((poly['Relation'] == '1:N') & (poly['iou_n1'] > threshold))[0]] = 'TP'
+    bd_status[np.where((poly['Relation'] == '1:N') & (poly['iou_n1'] <= threshold))[0]] = 'FP'
 
-    bd_class[np.where((poly['Relation'] == 'N:1') & (poly['ol_pl1_1n'] > threshold))[0]] = 'TP'
-    bd_class[np.where((poly['Relation'] == 'N:1') & (poly['ol_pl1_1n'] <= threshold))[0]] = 'FP'
+    bd_status[np.where((poly['Relation'] == 'N:1') & (poly['iou_1n'] > threshold))[0]] = 'TP'
+    bd_status[np.where((poly['Relation'] == 'N:1') & (poly['iou_1n'] <= threshold))[0]] = 'FP'
 
-    bd_class[np.where((poly['Relation'] == 'N:N') & (poly['ol_pl1_11'] > threshold))[0]] = 'TP'
-    bd_class[np.where((poly['Relation'] == 'N:N') & (poly['ol_pl1_11'] <= threshold))[0]] = 'FP'
+    bd_status[np.where((poly['Relation'] == 'N:N') & (poly['iou_11'] > threshold))[0]] = 'TP'
+    bd_status[np.where((poly['Relation'] == 'N:N') & (poly['iou_11'] <= threshold))[0]] = 'FP'
 
-    if 'bd_class' in poly.columns:
-        poly = poly.drop(columns=['bd_class'])
+    if 'bd_status' in poly.columns:
+        poly = poly.drop(columns=['bd_status'])
 
     relation_loc = poly.columns.get_loc('Relation')
-    poly.insert(loc=relation_loc + 1, column='bd_class', value=bd_class)
+    poly.insert(loc=relation_loc + 1, column='bd_status', value=bd_status)
     return poly
 
 
 def assign_class_bd_10(poly, prefix="bd"):
-    """
-    Relation과 {prefix}_class를 바탕으로 class_10 그룹을 지정하는 함수.
-    예: prefix="cd" → cd_class, cd_class_10 열 생성
-    """
-    class_col = f"{prefix}_class"
-    class10_col = "cls_10"
+    class_col = f"{prefix}_status"   # 예: bd_status
+    class10_col = f"{prefix}_class"  # 예: bd_class
 
     def get_class(row):
         rel = row.get("Relation")
         cls = row.get(class_col)
 
-        if rel == "1:0" and cls == "FN":
-            return "FN"
-        elif rel == "0:1" and cls == "FP":
-            return "FP"
-        elif rel == "1:1" and cls == "FN":
-            return "1:1 FN"
-        elif rel == "1:1" and cls == "FP":
-            return "1:1 FP"
-        elif rel == "1:1" and cls == "TP":
-            return "1:1 TP"
-        elif rel == "1:N" and cls == "FN":
-            return "1:N FN"
-        elif rel == "1:N" and cls == "FP":
-            return "1:N FP"
-        elif rel == "1:N" and cls == "TP":
-            return "1:N TP"
-        elif rel == "N:1" and cls == "FN":
-            return "N:1 FN"
-        elif rel == "N:1" and cls == "FP":
-            return "N:1 FP"
-        elif rel == "N:1" and cls == "TP":
-            return "N:1 TP"
-        elif rel == "N:N" and cls == "FN":
-            return "N:N FN"
-        elif rel == "N:N" and cls == "FP":
-            return "N:N FP"
-        elif rel == "N:N" and cls == "TP":
-            return "N:N TP"
-        else:
-            return None  # 기타 처리 안 된 경우
+        if rel == "1:0":
+            return "미탐지"
+        elif rel == "0:1":
+            return "오탐지"
+        elif rel == "1:N":
+            if cls in ("FN", "FP"):
+                return "over-seg 형상 오류"
+            elif cls == "TP":
+                return "over-seg 정탐지"
+        elif rel == "N:1":
+            if cls in ("FN", "FP"):
+                return "under-seg 형상 오류"
+            elif cls == "TP":
+                return "under-seg 정탐지"
+        elif rel == "N:N":
+            if cls in ("FN", "FP"):
+                return "complex 형상 오류"
+            elif cls == "TP":
+                return "complex 정탐지"
+        elif rel == "1:1":
+            if cls in ("FN", "FP"):
+                return "1:1 형상 오류"
+            elif cls == "TP":
+                return "1:1 정탐지"
+        return None  # 예외 처리
 
     poly = poly.copy()
     poly[class10_col] = poly.apply(get_class, axis=1)
 
-    relation_loc = poly.columns.get_loc("Relation")
-    reordered = poly.pop(class10_col)
-    poly.insert(loc=relation_loc + 1, column=class10_col, value=reordered)
+    # "Relation" 열 다음에 새로운 열을 삽입
+    if "Relation" in poly.columns:
+        relation_loc = poly.columns.get_loc("Relation")
+        reordered = poly.pop(class10_col)
+        poly.insert(loc=relation_loc + 1, column=class10_col, value=reordered)
 
     return poly
+
+
+def bd_result_attach(dmap, seg):
+    dmap = dmap.copy()
+
+    rel_list, class_list, status_list = [], [], []
+
+    for poly2_set in dmap['poly2_set']:
+        if not poly2_set or all(pd.isna(poly2_set)):  # 비어있거나 전부 NaN
+            rel_list.append(np.nan)
+            class_list.append(np.nan)
+            status_list.append(np.nan)
+            continue
+
+        matched = seg[seg['poly2_idx'].isin(poly2_set)]
+
+        if matched.empty:
+            rel_list.append(np.nan)
+            class_list.append(np.nan)
+            status_list.append(np.nan)
+        else:
+            rel_vals = matched['Relation'].dropna().astype(str).unique()
+            class_vals = matched['bd_class'].dropna().astype(str).unique()
+            status_vals = matched['bd_status'].dropna().astype(str).unique()
+
+            rel_list.append(", ".join(rel_vals))
+            class_list.append(", ".join(class_vals))
+            status_list.append(", ".join(status_vals))
+
+    insert_idx = dmap.columns.get_loc('poly1_idx') + 1
+    dmap.insert(insert_idx, 'rel_bd', rel_list)
+    dmap.insert(insert_idx + 1, 'bd_class', class_list)
+    dmap.insert(insert_idx + 2, 'bd_status', status_list)
+
+    return dmap
+
+
+def confusion_matrix_to_cd(cd_prev, cd_cur, confusion_matrix):
+    cd_prev = cd_prev.copy()
+    cd_cur = cd_cur.copy()
+
+    # 🔹 cd_prev에 붙이기 (신축, NaN 제외)
+    prev_merge = confusion_matrix[
+        (~confusion_matrix['gt_class'].isna()) & (confusion_matrix['gt_class'] != '신축')
+    ][['gt_idx', 'gt_class', 'gt_status']].copy()
+
+    prev_merge = prev_merge.rename(columns={
+        'gt_idx': 'poly1_idx',
+        'gt_status': 'cd_status'
+    })
+
+    cd_prev = pd.merge(cd_prev, prev_merge, on='poly1_idx', how='left')
+
+    # 🔹 열 순서 정리: cd_class 오른쪽에 cd_status, gt_class 삽입
+    if 'cd_status' in cd_prev.columns and 'gt_class' in cd_prev.columns:
+        cd_status = cd_prev.pop('cd_status')
+        gt_class = cd_prev.pop('gt_class')
+        insert_loc = cd_prev.columns.get_loc('cd_class') + 1
+        cd_prev.insert(insert_loc, 'gt_class', gt_class)
+        cd_prev.insert(insert_loc + 1, 'cd_status', cd_status)
+
+    # 🔹 cd_cur에 붙이기 (신축만)
+    cur_merge = confusion_matrix[
+        confusion_matrix['gt_class'] == '신축'
+    ][['gt_idx', 'gt_class', 'gt_status']].copy()
+
+    cur_merge = cur_merge.rename(columns={
+        'gt_idx': 'poly2_idx',
+        'gt_status': 'cd_status'
+    })
+
+    cd_cur = pd.merge(cd_cur, cur_merge, on='poly2_idx', how='left')
+
+    # 🔹 열 순서 정리: cd_class 오른쪽에 cd_status, gt_class 삽입
+    if 'cd_status' in cd_cur.columns and 'gt_class' in cd_cur.columns:
+        cd_status = cd_cur.pop('cd_status')
+        gt_class = cd_cur.pop('gt_class')
+        insert_loc = cd_cur.columns.get_loc('cd_class') + 1
+        cd_cur.insert(insert_loc, 'gt_class', gt_class)
+        cd_cur.insert(insert_loc + 1, 'cd_status', cd_status)
+
+    return cd_prev, cd_cur
+
+
+def attach_metrics_from_components(components_dict, poly1, poly2):
+    from shapely.ops import unary_union
+    import numpy as np
+
+    poly1 = poly1.copy()
+    poly2 = poly2.copy()
+
+    # 초기화
+    metric_cols = [
+        "comp_idx", "Relation",
+        "iou_1n", "ol_pl1_1n", "ol_pl2_1n",
+        "iou_n1", "ol_pl1_n1", "ol_pl2_n1",
+        "iou_11", "ol_pl1_11", "ol_pl2_11",
+        "iou_nn", "ol_pl1_nn", "ol_pl2_nn"
+    ]
+    for col in metric_cols[2:]:
+        poly1[col] = np.nan
+        poly2[col] = np.nan
+    poly1["comp_idx"] = np.nan
+    poly2["comp_idx"] = np.nan
+    poly1["Relation"] = np.nan
+    poly2["Relation"] = np.nan
+
+    def calc_metrics(g1, g2):
+        if g1 is None or g2 is None:
+            return (np.nan, np.nan, np.nan)
+        inter = g1.intersection(g2).area
+        if inter == 0:
+            return (0, 0, 0)
+        return (
+            inter / g1.union(g2).area,
+            inter / g1.area if g1.area > 0 else 0,
+            inter / g2.area if g2.area > 0 else 0
+        )
+
+    for comp_idx, comp in components_dict.items():
+        p1_set = comp["poly1_set"]
+        p2_set = comp["poly2_set"]
+
+        rel = (
+            "1:0" if len(p2_set) == 0 else
+            "0:1" if len(p1_set) == 0 else
+            "1:1" if len(p1_set) == 1 and len(p2_set) == 1 else
+            "1:N" if len(p1_set) == 1 else
+            "N:1" if len(p2_set) == 1 else "N:N"
+        )
+
+        poly1.loc[poly1['poly1_idx'].isin(p1_set), ["comp_idx", "Relation"]] = [comp_idx, rel]
+        poly2.loc[poly2['poly2_idx'].isin(p2_set), ["comp_idx", "Relation"]] = [comp_idx, rel]
+
+        if rel == "1:N":
+            g1 = poly1.loc[poly1['poly1_idx'] == p1_set[0], "geometry"].values[0]
+            g2_union = unary_union(poly2.loc[poly2['poly2_idx'].isin(p2_set), "geometry"])
+
+            # n1: poly1 vs union(poly2)
+            iou_n1, ol1_n1, ol2_n1 = calc_metrics(g1, g2_union)
+            poly1.loc[poly1['poly1_idx'] == p1_set[0], ["iou_n1", "ol_pl1_n1", "ol_pl2_n1"]] = [iou_n1, ol1_n1, ol2_n1]
+            poly2.loc[poly2['poly2_idx'].isin(p2_set), ["iou_n1", "ol_pl1_n1", "ol_pl2_n1"]] = [iou_n1, ol1_n1, ol2_n1]
+
+            # nn: poly1 vs each poly2
+            for p2 in p2_set:
+                g2 = poly2.loc[poly2['poly2_idx'] == p2, "geometry"].values[0]
+                iou, ol1, ol2 = calc_metrics(g1, g2)
+                poly2.loc[poly2['poly2_idx'] == p2, ["iou_nn", "ol_pl1_nn", "ol_pl2_nn"]] = [iou, ol1, ol2]
+            poly1.loc[poly1['poly1_idx'] == p1_set[0], ["iou_nn", "ol_pl1_nn", "ol_pl2_nn"]] = [iou, ol1, ol2]
+
+        elif rel == "N:1":
+            g2 = poly2.loc[poly2['poly2_idx'] == p2_set[0], "geometry"].values[0]
+            g1_union = unary_union(poly1.loc[poly1['poly1_idx'].isin(p1_set), "geometry"])
+
+            # 1n: union(poly1) vs poly2
+            iou_1n, ol1_1n, ol2_1n = calc_metrics(g1_union, g2)
+            poly1.loc[poly1['poly1_idx'].isin(p1_set), ["iou_1n", "ol_pl1_1n", "ol_pl2_1n"]] = [iou_1n, ol1_1n, ol2_1n]
+            poly2.loc[poly2['poly2_idx'] == p2_set[0], ["iou_1n", "ol_pl1_1n", "ol_pl2_1n"]] = [iou_1n, ol1_1n, ol2_1n]
+
+            # nn: each poly1 vs poly2
+            for p1 in p1_set:
+                g1 = poly1.loc[poly1['poly1_idx'] == p1, "geometry"].values[0]
+                iou, ol1, ol2 = calc_metrics(g1, g2)
+                poly1.loc[poly1['poly1_idx'] == p1, ["iou_nn", "ol_pl1_nn", "ol_pl2_nn"]] = [iou, ol1, ol2]
+            poly2.loc[poly2['poly2_idx'] == p2_set[0], ["iou_nn", "ol_pl1_nn", "ol_pl2_nn"]] = [iou, ol1, ol2]
+
+        elif rel == "N:N":
+            g1_union = unary_union(poly1.loc[poly1['poly1_idx'].isin(p1_set), "geometry"])
+            g2_union = unary_union(poly2.loc[poly2['poly2_idx'].isin(p2_set), "geometry"])
+
+            # 11: union vs union
+            iou_11, ol1_11, ol2_11 = calc_metrics(g1_union, g2_union)
+            poly1.loc[poly1['poly1_idx'].isin(p1_set), ["iou_11", "ol_pl1_11", "ol_pl2_11"]] = [iou_11, ol1_11, ol2_11]
+            poly2.loc[poly2['poly2_idx'].isin(p2_set), ["iou_11", "ol_pl1_11", "ol_pl2_11"]] = [iou_11, ol1_11, ol2_11]
+
+            # 1n: union(poly1) vs each poly2
+            for p2 in p2_set:
+                g2 = poly2.loc[poly2['poly2_idx'] == p2, "geometry"].values[0]
+                iou, ol1, ol2 = calc_metrics(g1_union, g2)
+                poly2.loc[poly2['poly2_idx'] == p2, ["iou_1n", "ol_pl1_1n", "ol_pl2_1n"]] = [iou, ol1, ol2]
+            poly1.loc[poly1['poly1_idx'].isin(p1_set), ["iou_1n", "ol_pl1_1n", "ol_pl2_1n"]] = [iou, ol1, ol2]
+
+            # n1: each poly1 vs union(poly2)
+            for p1 in p1_set:
+                g1 = poly1.loc[poly1['poly1_idx'] == p1, "geometry"].values[0]
+                iou, ol1, ol2 = calc_metrics(g1, g2_union)
+                poly1.loc[poly1['poly1_idx'] == p1, ["iou_n1", "ol_pl1_n1", "ol_pl2_n1"]] = [iou, ol1, ol2]
+            poly2.loc[poly2['poly2_idx'].isin(p2_set), ["iou_n1", "ol_pl1_n1", "ol_pl2_n1"]] = [iou, ol1, ol2]
+
+        elif rel == "1:1":
+            p1 = p1_set[0]
+            p2 = p2_set[0]
+            g1 = poly1.loc[poly1['poly1_idx'] == p1, "geometry"].values[0]
+            g2 = poly2.loc[poly2['poly2_idx'] == p2, "geometry"].values[0]
+            iou, ol1, ol2 = calc_metrics(g1, g2)
+            poly1.loc[poly1['poly1_idx'] == p1, ["iou_nn", "ol_pl1_nn", "ol_pl2_nn"]] = [iou, ol1, ol2]
+            poly2.loc[poly2['poly2_idx'] == p2, ["iou_nn", "ol_pl1_nn", "ol_pl2_nn"]] = [iou, ol1, ol2]
+
+    return poly1, poly2
+
+
+def reorder_columns_after_cut_link(df):
+    target_cols = ["comp_idx", "poly1_set", "poly2_set", "rel_cd", "class_10", "cd_class", "gt_class", "cd_status"]
+
+    # 존재하는 컬럼만 필터링 (혹시 일부 누락되어도 오류 방지)
+    target_cols = [col for col in target_cols if col in df.columns]
+
+    # cut_link 열 위치 확인
+    if "cut_link" not in df.columns:
+        raise ValueError("'cut_link' 열이 데이터프레임에 없습니다.")
+
+    cut_link_idx = df.columns.get_loc("cut_link")
+
+    # 나머지 열들
+    remaining_cols = [col for col in df.columns if col not in target_cols]
+
+    # cut_link 이전 + cut_link + target_cols + 나머지
+    reordered_cols = (
+        remaining_cols[:cut_link_idx + 1]
+        + target_cols
+        + remaining_cols[cut_link_idx + 1:]
+    )
+
+    return df[reordered_cols]

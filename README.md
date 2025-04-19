@@ -127,6 +127,5 @@ geopandas==1.0.1
 networkx==3.4.2
 rasterio==1.3.9
 matplotlib==3.10.1
-rasterio==1.4.3
 ```
 

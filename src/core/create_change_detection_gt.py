@@ -16,6 +16,15 @@ def cd_pipeline(dmap1_path, dmap2_path, prev_output_path, cur_output_path, anl_o
     dmap1 = assign_class(dmap1, cd_threshold)
     dmap2 = assign_class(dmap2, cd_threshold)
     report = analysis_utils.analysis_pipeline(dmap1, dmap2)
+    cols_to_drop = [
+        'iou_nn', 'ol_pl1_nn', 'ol_pl2_nn',
+        'iou_1n', 'ol_pl1_1n', 'ol_pl2_1n',
+        'iou_n1', 'ol_pl1_n1', 'ol_pl2_n1',
+        'iou_11', 'ol_pl1_11', 'ol_pl2_11',
+        'comp_idx', 'poly1_set', 'poly2_set', 'cut_link', 'Relation'
+    ]
+    dmap1 = dmap1.drop(columns=[col for col in cols_to_drop if col in dmap1.columns])
+    dmap2 = dmap2.drop(columns=[col for col in cols_to_drop if col in dmap2.columns])
     io.export_file(dmap1, prev_output_path, 'prev_dmap_add_error')
     io.export_file(dmap2, cur_output_path, 'cur_dmap_add_error')
     io.export_file(report, anl_output_path, 'analysis_result')

@@ -10,6 +10,18 @@ def indexing(poly1, poly2):
 
     poly2['poly2_idx'] = range(1, len(poly2) + 1)
     poly2 = poly2.reset_index(drop=True)
+
+    poly1_area = poly1.geometry.area
+    poly2_area = poly2.geometry.area
+
+    poly1 = poly1.drop(columns=['area'], errors='ignore')
+    idx_loc1 = poly1.columns.get_loc('poly1_idx')
+    poly1.insert(loc=idx_loc1, column='area', value=poly1_area)
+
+    poly2 = poly2.drop(columns=['area'], errors='ignore')
+    idx_loc2 = poly2.columns.get_loc('poly2_idx')
+    poly2.insert(loc=idx_loc2, column='area', value=poly2_area)
+
     outer_joined = polygon_matching_utils.outer_join(poly1, poly2, poly1_prefix="poly1", poly2_prefix="poly2")
     return poly1, poly2, outer_joined
 
@@ -64,7 +76,10 @@ def add_energy_to_links(poly1, poly2, graph_dict):
     return graph_dict
 
 
-def split_graph_by_energy(graph_dict, threshold):
+def split_graph_by_energy(poly1, poly2, graph_dict, threshold):
+    poly1 = poly1.set_index("poly1_idx")
+    poly2 = poly2.set_index("poly2_idx")
+
     G = nx.Graph()
     original_links = graph_dict["links"]
     original_nodes = graph_dict["nodes"]
@@ -72,15 +87,30 @@ def split_graph_by_energy(graph_dict, threshold):
     cut_links = []
     kept_links = []
 
-    # 에너지 기준으로 링크 분리
+    suppression = 0.7
+
     for link in original_links:
-        if link.get("energy", 0) >= threshold:
-            G.add_edge(link["source"], link["target"], energy=link["energy"])
+        energy = link.get("energy", 0)
+
+        if energy >= threshold:
+            G.add_edge(link["source"], link["target"], energy=energy)
             kept_links.append(link)
         else:
-            cut_links.append(link)
+            p1_idx = int(link["source"].replace("p1_", ""))
+            p2_idx = int(link["target"].replace("p2_", ""))
+            geom1 = poly1.loc[p1_idx, "geometry"]
+            geom2 = poly2.loc[p2_idx, "geometry"]
+            area1 = poly1.loc[p1_idx, "area"]
 
-    # 고립 노드도 반드시 포함
+            intersection = geom1.intersection(geom2)
+            ol1 = intersection.area / area1 if area1 > 0 else 0
+
+            if ol1 < suppression:
+                cut_links.append(link)
+            else:
+                G.add_edge(link["source"], link["target"], energy=energy)
+                kept_links.append(link)
+
     for node in original_nodes:
         G.add_node(node["id"])
 
@@ -113,17 +143,17 @@ def split_graph_by_energy(graph_dict, threshold):
         "after_components": len(components_dict),
         "num_cut_links": len(cut_links)
     }
-
     return components_dict, {"nodes": new_node_list, "links": new_link_list}, cut_links, summary
 
 
 def calculate_all_combination_metrics(poly1, poly2, components_dict, cut_links):
     poly1, poly2 = polygon_matching_utils.mark_cut_links(poly1, poly2, cut_links)
-    combination_df = polygon_matching_utils.generate_components_df(components_dict)
-    final_metrics_df = polygon_matching_utils.compute_metrics_for_combi_df(combination_df, poly1, poly2)
-    poly1, poly2 = polygon_matching_utils.attach_metrics_to_polys(poly1, poly2, final_metrics_df)
+    poly1, poly2 = polygon_matching_utils.attach_metrics_from_components(components_dict, poly1, poly2)
+    # combination_df = polygon_matching_utils.generate_components_df(components_dict)
+    # final_metrics_df = polygon_matching_utils.compute_metrics_for_combi_df(combination_df, poly1, poly2)
+    # poly1, poly2 = polygon_matching_utils.attach_metrics_to_polys(poly1, poly2, final_metrics_df)
     poly1, poly2 = polygon_matching_utils.add_component_sets_to_polys(poly1, poly2, components_dict)
-    return final_metrics_df, poly1, poly2
+    return cut_links, poly1, poly2
 
 
 def algorithm_pipeline(poly1_path, poly2_path, output_path, cut_threshold):
@@ -132,6 +162,6 @@ def algorithm_pipeline(poly1_path, poly2_path, output_path, cut_threshold):
     poly1, poly2, joined = indexing(poly1, poly2)
     graph = build_graph(joined)
     graph = add_energy_to_links(poly1, poly2, graph)
-    component, graph, cut_link, summary = split_graph_by_energy(graph, cut_threshold)
+    component, graph, cut_link, summary = split_graph_by_energy(poly1, poly2, graph, cut_threshold)
     final_metrics, poly1, poly2 = calculate_all_combination_metrics(poly1, poly2, component, cut_link)
     return final_metrics, poly1, poly2

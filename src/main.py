@@ -8,8 +8,6 @@ from src.core import detect_building_change
 from src.core import create_change_detection_gt
 from src.core import evaluate_building_detection
 from src.core import evaluate_building_change_detection
-from src.core import classify_dmap_error
-from src.common.path_config import load_paths
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=pd.errors.SettingWithCopyWarning)
@@ -74,25 +72,12 @@ def run_pipeline(region, year, previous_year, selected_indices):
         )
         print(f"Evaluate Change Detection - 완료 ({time.time() - start_time:.2f}초)")
 
-    def classify_dmap_error2():
-        start_time = time.time()
-        classify_dmap_error.run_pipeline(
-            paths['image'],
-            paths['dmap_vs_dmap_current_result'],
-            paths['dmap_vs_dmap_prev_result'],
-            paths['change_classify_seg_result'],
-            paths['dmap_error_result'],
-            10
-        )
-        print(f"Detect Error - 완료 ({time.time() - start_time:.2f}초)")
 
     pipeline_steps = [
         ("Evaluate Building Detection", detect_building),
         ("Detect Change", detect_change),
         ("Evaluate Change Detection", evaluate_change_detection),
-        ("Dmap vs Dmap", validate_change_detection),
-        ("Detect Error", classify_dmap_error2)
-    ]
+        ("Dmap vs Dmap", validate_change_detection)    ]
 
     pipeline_step_selector.run_selected_pipeline_steps(pipeline_steps, selected_indices)
 
@@ -111,9 +96,7 @@ pipeline_steps = [
     ("Evaluate Building Detection", None),
     ("Detect Change", None),
     ("Evaluate Change Detection", None),
-    ("Create Building Change Detection GT", None),
-    ("Detect Error", None)
-]
+    ("Create Building Change Detection GT", None)]
 selected_indices = pipeline_step_selector.get_selected_pipeline_indices(pipeline_steps)
 
 # 지역 처리

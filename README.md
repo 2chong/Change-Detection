@@ -34,8 +34,6 @@ DT/
 │   │   ├── path_loader.py
 │   │   └── pipeline_step_selector.py
 │   ├── core/
-│   │   ├── classify_dmap_error.py
-│   │   ├── classify_dmap_error2.py
 │   │   ├── create_change_detection_gt.py
 │   │   ├── detect_building_change.py
 │   │   ├── evaluate_building_change_detection.py
@@ -94,7 +92,7 @@ Sources root에서 실행
 
 ```bash
 set PYTHONPATH=%cd%
-python src/main2.py
+python src/main.py
 ```
 
 이후 터미널에서 지역, 연도, 이전 연도를 입력하고 실행할 단계들을 선택하면 자동으로 파이프라인이 실행됩니다.
@@ -127,6 +125,5 @@ geopandas==1.0.1
 networkx==3.4.2
 rasterio==1.3.9
 matplotlib==3.10.1
-rasterio==1.4.3
 ```
 

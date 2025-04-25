@@ -4,50 +4,67 @@
 
 ---
 
-## 📁 디렉터리 구조
-
+# 📁 프로젝트 디렉토리 구조
 ```
 DT/
 ├── config/
-│   ├── config.json
-│   └── last_selection.json
-│
+│   ├── config.json             # 경로 설정 파일
+│   └── last_selection.json     
 ├── Data/
-│   └── building/
-│       ├── evaluation/
-│       │   ├── evaluation result/
-│       │   │   ├── evaluation of building change detection/
-│       │   │   └── evaluation of building detection/
-│       │   └── ground truth/
-│       │       ├── building change detection GT/
-│       │       └── building detection GT/
-│       ├── input/
-│       │   ├── building inference/
-│       │   └── previous building digital map/
-│       └── output/
-│           └── building change detection result/
-│
-├── src/
-│   ├── common/
-│   │   ├── input_parameter.py
-│   │   ├── path_config.py
-│   │   ├── path_loader.py
-│   │   └── pipeline_step_selector.py
-│   ├── core/
-│   │   ├── create_change_detection_gt.py
-│   │   ├── detect_building_change.py
-│   │   ├── evaluate_building_change_detection.py
-│   │   └── evaluate_building_detection.py
-│   ├── utils/
-│   │   ├── analysis_utils.py
-│   │   ├── evaluation_utils.py
-│   │   ├── polygon_matching_algorithm.py
-│   │   ├── polygon_matching_utils.py
-│   │   └── io.py
-│   └── main2.py
-│
-├── requirements.txt
-└── README.md
+│   ├── building/
+│   │   ├── building_detection/
+│   │   │   ├── eval/           
+│   │   │   └── result/         
+│   │   ├── change_detection/
+│   │   │   ├── eval/           # 변화 탐지 평가 결과
+│   │   │   └── result/         # 변화 탐지 결과
+│   │   └── ground_truth/
+│   │       ├── building_detection/    # 건물 탐지 GT
+│   │       └── change_detection/      # 변화 탐지 GT
+│   └── shared/
+│       └── input/
+│           ├── building_inference/    # 건물 추론 결과
+│           └── previous_building_digital_map/   # 과거 수치지도
+├── road/                     # 도로 관련 데이터 (dev-ing)
+├── preprocessing/            # 전처리 모듈
+├── report/
+│   ├── building_detection/
+│   ├── change_detection/
+│   ├── map_validation/
+│   └── summaries/            
+│   src/
+│   ├── common/                          
+│   │   ├── input_parameter.py           
+│   │   ├── path_config.py               
+│   │   ├── path_loader.py               
+│   │   └── pipeline_step_selector.py    
+│   │
+│   ├── core/                            
+│   │   ├── building_change_detection/
+│   │   │   ├── detect_building_change.py         
+│   │   │   └── postprocess/                      
+│   │   │
+│   │   ├── map_validation/
+│   │   │   ├── create_change_detection_gt.py     # 변화 탐지 GT
+│   │   │   └── postprocess/                      
+│   │   │
+│   │   └── polygon_matching/
+│   │       ├── polygon_matching_algorithm.py     # 폴리곤 매칭 알고리즘
+│   │       └── polygon_matching_utils.py         # 매칭 관련 유틸
+│   │
+│   ├── evaluation/                      
+│   │   ├── evaluate_building_change_detection.py # 건물 변화 탐지 평가
+│   │   └── evaluate_building_detection.py        # 건물 탐지 평가
+│   │
+│   ├── utils/                           
+│   │   ├── analysis_utils.py            # 분석 관련 유틸
+│   │   ├── evaluation_utils.py          # 평가 관련 유틸
+│   │   └── io.py                        # 입출력 관련 유틸
+│   │
+│   └── main.py                          
+├── .gitignore
+├── README.md
+└── requirements.txt          # 의존성 목록
 ```
 
 ---

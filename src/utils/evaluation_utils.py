@@ -1,7 +1,6 @@
 import pandas as pd
-import numpy as np
 import geopandas as gpd
-from src.utils import polygon_matching_utils
+from src.core.polygon_matching import polygon_matching_utils
 
 
 def compare_gt_cd_remove_updated_unchanged(gt_prev, cd_prev):

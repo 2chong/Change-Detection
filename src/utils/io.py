@@ -1,6 +1,7 @@
 import pandas as pd
 import geopandas as gpd
 import os
+import rasterio
 
 
 def export_file(df, output_path, file_name):
@@ -31,3 +32,12 @@ def import_shapefile(file_path, crs=5186):
     if gdf.crs != f"epsg:{crs}":
         gdf = gdf.to_crs(epsg=crs)
     return gdf
+
+
+def import_tif(tif_path):
+    with rasterio.open(tif_path) as src:
+        data = src.read()         # shape: (bands, height, width)
+        crs = src.crs
+        meta = src.meta
+
+    return data, crs, meta

@@ -4,10 +4,9 @@ import time
 from src.common import path_config
 from src.common import input_parameter
 from src.common import pipeline_step_selector
-from src.core import detect_building_change
-from src.core import create_change_detection_gt
-from src.core import evaluate_building_detection
-from src.core import evaluate_building_change_detection
+from src.core.building_change_detection import detect_building_change
+from src.core.map_validation import create_change_detection_gt
+from src.evaluation import evaluate_building_change_detection, evaluate_building_detection
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=pd.errors.SettingWithCopyWarning)
@@ -27,6 +26,7 @@ def run_pipeline(region, year, previous_year, selected_indices):
             paths['evaluation_of_building_detection_gt'],
             paths['evaluation_of_building_detection_predict'],
             paths['evaluation_of_building_detection_anl'],
+            paths['evaluation_of_building_detection'],
             0.05,
             0.6
         )

@@ -15,19 +15,21 @@ BASE_RESULT_DIR = Path("app/static/results")
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 BASE_RESULT_DIR.mkdir(parents=True, exist_ok=True)
 
+
 @app.get("/", response_class=HTMLResponse)
 async def upload_form(request: Request):
     return templates.TemplateResponse("upload.html", {"request": request, "result": None})
 
+
 @app.post("/detect", response_class=HTMLResponse)
 async def detect_building_change(
-    request: Request,
-    dmap_zip: UploadFile = File(...),
-    seg_zip: UploadFile = File(...),
-    cut_threshold: float = Form(0.05),
-    cd_threshold: float = Form(0.7)
+        request: Request,
+        dmap_zip: UploadFile = File(...),
+        seg_zip: UploadFile = File(...),
+        cut_threshold: float = Form(0.05),
+        cd_threshold: float = Form(0.7)
 ):
-    # 1. 세션 디렉토리 생성 (날짜+시간 기반)
+    # 1. 세션 디렉토리 생성
     session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     upload_dir = BASE_UPLOAD_DIR / session_id
     upload_dir.mkdir(parents=True, exist_ok=True)
@@ -61,22 +63,20 @@ async def detect_building_change(
     # 4. 입력 shp 추출
     dmap_input = list(dmap_folder.glob("*.shp"))[0]
     seg_input = list(seg_folder.glob("*.shp"))[0]
-    dmap_output = dmap_result_dir / "dmap_output.shp"
-    seg_output = seg_result_dir / "seg_output.shp"
 
-    # 5. 변화탐지 실행
+    # 6. 변화탐지 실행
     cd_pipeline(
         dmap_path=str(dmap_input),
         seg_path=str(seg_input),
-        dmap_output_path=str(dmap_output),
-        seg_output_path=str(seg_output),
+        dmap_output_path=str(dmap_result_dir),
+        seg_output_path=str(seg_result_dir),
         cut_threshold=cut_threshold,
         cd_threshold=cd_threshold
     )
 
-    # 6. 폴더 압축 함수
+    # 7. 폴더 압축 함수 (해당 폴더 내 모든 파일 zip)
     def zip_folder(folder_path: Path, zip_name: str):
-        zip_path = folder_path / zip_name
+        zip_path = folder_path.parent / zip_name
         with zipfile.ZipFile(zip_path, 'w') as zf:
             for file in folder_path.glob("*"):
                 if file.is_file():
@@ -89,14 +89,16 @@ async def detect_building_change(
     return templates.TemplateResponse("upload.html", {
         "request": request,
         "result": {
-            "dmap": f"/download/{session_id}/dmap/{dmap_zip_name}",
-            "seg": f"/download/{session_id}/seg/{seg_zip_name}",
+            "dmap": f"/download/{session_id}/{dmap_zip_name}",
+            "seg": f"/download/{session_id}/{seg_zip_name}",
             "cut_threshold": cut_threshold,
             "cd_threshold": cd_threshold
         }
     })
 
-@app.get("/download/{session_id}/{category}/{filename}")
-async def download_file(session_id: str, category: str, filename: str):
-    file_path = BASE_RESULT_DIR / session_id / category / filename
+
+@app.get("/download/{session_id}/{filename}")
+async def download_file(session_id: str, filename: str):
+    file_path = BASE_RESULT_DIR / session_id / filename
     return FileResponse(path=file_path, filename=filename)
+

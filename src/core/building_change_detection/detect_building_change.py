@@ -14,7 +14,7 @@ def cd_pipeline(dmap_path, seg_path, dmap_output_path, seg_output_path, cut_thre
                           (dmap_path, seg_path, seg_path, cut_threshold))
     dmap = assign_class(dmap, cd_threshold)
     seg = assign_class(seg, cd_threshold)
-    dmap = polygon_matching_utils.bd_result_attach(dmap, seg)
+    # dmap = polygon_matching_utils.bd_result_attach(dmap, seg)
     dmap = dmap.rename(columns={"Relation": "rel_cd"})
     seg = seg.rename(columns={"Relation": "rel_cd"})
     io.export_file(dmap, dmap_output_path, 'dmap')

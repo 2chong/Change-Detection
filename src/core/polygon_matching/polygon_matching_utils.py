@@ -617,6 +617,9 @@ def attach_metrics_from_components(components_dict, poly1, poly2):
             "N:1" if len(p2_set) == 1 else "N:N"
         )
 
+        poly1["Relation"] = poly1["Relation"].astype("object")
+        poly2["Relation"] = poly2["Relation"].astype("object")
+
         poly1.loc[poly1['poly1_idx'].isin(p1_set), ["comp_idx", "Relation"]] = [comp_idx, rel]
         poly2.loc[poly2['poly2_idx'].isin(p2_set), ["comp_idx", "Relation"]] = [comp_idx, rel]
 

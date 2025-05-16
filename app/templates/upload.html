@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>건물 변화탐지</title>
+</head>
+<body>
+    <h1>건물 변화탐지 시스템</h1>
+
+    <form action="/detect" method="post" enctype="multipart/form-data">
+        <label>과거 수치지도 ZIP (.shp 포함)</label><br>
+        <input type="file" name="dmap_zip" accept=".zip" required><br><br>
+
+        <label>현재 추론 결과 ZIP</label><br>
+        <input type="file" name="seg_zip" accept=".zip" required><br><br>
+
+        <label>컷 임계값 (cut_threshold):</label><br>
+        <input type="number" name="cut_threshold" step="0.01" value="0.05" required><br><br>
+
+        <label>변화 임계값 (cd_threshold):</label><br>
+        <input type="number" name="cd_threshold" step="0.01" value="0.7" required><br><br>
+
+        <button type="submit">변화탐지 실행</button>
+    </form>
+
+    {% if result %}
+        <hr>
+        <h3>분석 완료 ✅</h3>
+        <p><strong>cut_threshold:</strong> {{ result.cut_threshold }}</p>
+        <p><strong>cd_threshold:</strong> {{ result.cd_threshold }}</p>
+
+        <a href="{{ result.dmap }}" download>
+            <button>신축 결과 다운로드</button>
+        </a>
+
+        <a href="{{ result.seg }}" download>
+            <button>소멸 결과 다운로드</button>
+        </a>
+    {% endif %}
+</body>
+</html>

@@ -106,6 +106,11 @@ def run(geotiff, model, output_type='default',
             elif segmentor:
                 tile_mask = execute_segmentation(img, session, config)
                 merge_mask(tile_mask, mask, w, width, height, tiles_overlap, scale_factor)
+                # plt.figure(figsize=(6, 6))
+                # plt.imshow(mask, cmap="hot")
+                # plt.colorbar(label="Confidence")
+                # plt.title("Building Confidence Map")
+                # plt.show()
 
         p("Finalizing", 4)
 

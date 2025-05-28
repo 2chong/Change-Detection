@@ -16,7 +16,9 @@ def execute_segmentation(images, session, config):
     images = preprocess(images)
     outs = session.run(None, {config['input_name']: images})
     out = outs[0]
-    return np.expand_dims(out[0, 0, :, :], axis=0)
+    building_conf = out[0, 0, :, :]
+    # 🔢 unique 값 추출 및 출력
+    return building_conf
 
 
 def rect_intersect(rect1, rect2):
@@ -59,7 +61,7 @@ def merge_mask(tile_mask, mask, window, width, height, tiles_overlap=0, scale_fa
     w = window
     row_off = int(w.row_off // scale_factor) #int(np.round(w.row_off / scale_factor))
     col_off = int(w.col_off // scale_factor) #int(np.round(w.col_off / scale_factor))
-    tile_w, tile_h = tile_mask.shape[1:]
+    tile_w, tile_h = tile_mask.shape
 
     pad_x = int(tiles_overlap * tile_w) // 2
     pad_y = int(tiles_overlap * tile_h) // 2
@@ -83,6 +85,7 @@ def merge_mask(tile_mask, mask, window, width, height, tiles_overlap=0, scale_fa
     tile_w -= pad_l + pad_r
     tile_h -= pad_t + pad_b
 
+    tile_mask = tile_mask[np.newaxis, :, :]  # shape: (1, 512, 512)
     tile_mask = tile_mask[:,pad_t:pad_t+tile_h,pad_l:pad_l+tile_w]
     tr, sr = rect_intersect((col_off, row_off, tile_w, tile_h), (0, 0, mask.shape[1], mask.shape[0]))
     if tr is not None and sr is not None:
@@ -153,11 +156,14 @@ def save_mask_to_raster(geotiff, mask, outfile):
         p['width'] = mask.shape[1]
         p['height'] = mask.shape[0]
         p['count'] = 1
+        p['dtype'] = 'uint8'
         p['transform'] *= rasterio.Affine.scale(src.profile['width'] / p['width'], src.profile['height'] / p['height'])
 
         with rasterio.open(outfile, "w", **p) as dst:
-            dst.write(mask, 1)
-        
+            scaled_mask = (mask * 255).astype(np.uint8)
+            dst.write(scaled_mask, 1)
+
+
 def filter_small_segments(mask, config):
     # Better matches the logic from Deepness
     # where the parameter refers to the dilation/erode size

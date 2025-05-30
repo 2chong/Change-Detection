@@ -5,7 +5,7 @@ from .models import get_model_file
 from .inference import create_session
 from .utils import estimate_raster_resolution, cls_names_map, median_filter
 from .detection import execute_detection, non_max_suppression_fast, extract_bsc, non_max_kdtree, sort_by_area, bscs_to_geojson
-from .segmentation import execute_segmentation, mask_to_geojson, merge_mask, filter_small_segments
+from .segmentation import execute_segmentation, mask_to_geojson, merge_mask, filter_small_segments, morphology_to_mask, mask_to_gdf, simplify_polygon
 import logging
 import matplotlib.pyplot as plt
 
@@ -139,11 +139,15 @@ def run(geotiff, model, output_type='default',
         elif segmentor:
             mask = median_filter(mask, 5)
             mask = filter_small_segments(mask, config)
-            
+            mask = morphology_to_mask(mask, open_k=21, close_k=3, iterations=1)
+            mask = morphology_to_mask(mask, open_k=7, close_k=3, iterations=1)
+
+            gdf = mask_to_gdf(raster, mask, config)
+            # 모폴로지 과정까지 추가
             p("Done", 1)
 
             if output_type == 'raw' or output_type == 'default':
-                return mask
+                return mask, gdf
             elif output_type == 'geojson':
                 return mask_to_geojson(raster, mask, config, scale_factor)
             else:

@@ -5,12 +5,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 
 try:
     from geodeep import run, models, simple_progress, __version__
-    from geodeep.segmentation import save_mask_to_raster
+    from geodeep.segmentation import save_mask_to_raster, simplify_polygon
 except ImportError:
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
     from geodeep import run, models, simple_progress, __version__
-    from geodeep.segmentation import save_mask_to_raster
+    from geodeep.segmentation import save_mask_to_raster, simplify_polygon
 import inspect
 
 def main():
@@ -108,7 +108,7 @@ def main():
     if output_type == "mask":
         output_type = "raw"
     
-    output = run(args.geotiff, args.model, 
+    output, gdf = run(args.geotiff, args.model,
                 output_type=output_type, 
                 conf_threshold=args.conf_threshold,
                 resolution=args.resolution,
@@ -116,6 +116,8 @@ def main():
                 max_threads=args.max_threads,
                 progress_callback=simple_progress if not args.quiet else None)
 
+    # 벡터라이제이션 과정 추가
+    # 폴리곤 단순화 과정 추가
     exts = {
         'geojson': '.geojson',
         'mask': '.tif'
@@ -126,9 +128,12 @@ def main():
         if args.output_type == "geojson":
             with open(outfile, "w") as f:
                 f.write(output)
-        
+
         elif args.output_type == "mask":
             save_mask_to_raster(args.geotiff, output, outfile)
+            gdf.to_file("output_buildings_before.shp", driver="ESRI Shapefile")
+            gdf = simplify_polygon(gdf, tolerance=0.4, preserve_topology=True)
+            gdf.to_file("output_buildings.shp", driver="ESRI Shapefile")
 
         print("")
         print(f"Wrote {outfile}")

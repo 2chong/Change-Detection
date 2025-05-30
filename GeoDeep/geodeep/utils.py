@@ -64,3 +64,4 @@ except ImportError:
         strides = padded.strides + padded.strides
         view = np.lib.stride_tricks.as_strided(padded, shape=shape, strides=strides)
         return np.median(view, axis=(2, 3)).astype(arr.dtype)
+

@@ -4,8 +4,15 @@ import json
 import numpy as np
 from .detection import preprocess
 import logging
+import cv2
+import geopandas as gpd
+from shapely.geometry import shape
+from rasterio.features import shapes
+from rasterio.warp import transform
+from shapely.geometry import Polygon
+from shapely.geometry import MultiPolygon
+from shapely.ops import unary_union
 logger = logging.getLogger("geodeep")
-import matplotlib.pyplot as plt
 
 def postprocess(model_output, config):
     model_output[model_output<config['seg_thresh']] = 0
@@ -161,6 +168,7 @@ def save_mask_to_raster(geotiff, mask, outfile):
 
         with rasterio.open(outfile, "w", **p) as dst:
             scaled_mask = (mask * 255).astype(np.uint8)
+            # 이거 return 하게 만들어서, 래스터
             dst.write(scaled_mask, 1)
 
 
@@ -173,3 +181,47 @@ def filter_small_segments(mask, config):
         # Remove small polygons
         rasterio.features.sieve(mask, ss, out=mask)
     return mask
+
+
+def morphology_to_mask(mask, open_k=21, close_k=3, iterations=2):
+    open_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (open_k, open_k))
+    close_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (close_k, close_k))
+
+    opened = cv2.morphologyEx(mask, cv2.MORPH_OPEN, open_kernel, iterations=iterations)
+    morphed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, close_kernel, iterations=iterations)
+    return morphed
+
+
+def mask_to_gdf(raster, mask, config, scale_factor=1.0):
+
+    affine = raster.transform * rasterio.Affine.scale(scale_factor, scale_factor)
+
+    values = np.unique(mask)
+    values = values[values != 0]  # 0 제외
+
+    if len(values) == 0:
+        print("❗ 추론된 건물 없음")
+        return gpd.GeoDataFrame(columns=['class', 'geometry'], crs="EPSG:5186")
+    elif len(values) > 1:
+        print(f"⚠️ 클래스가 여러 개 있습니다: {values} → 첫 번째 값만 사용합니다.")
+
+    target_value = values[0]
+
+    geometries = []
+    for geom, val in shapes(source=mask, mask=(mask == target_value), transform=affine):
+        s = shape(geom)
+        if s.is_valid and not s.is_empty:
+            xs, ys = zip(*s.exterior.coords[:])
+            x_new, y_new = transform(raster.crs, "EPSG:5186", xs, ys)
+            projected_geom = shape({
+                "type": "Polygon",
+                "coordinates": [list(zip(x_new, y_new))]
+            })
+            geometries.append(projected_geom)
+
+    return gpd.GeoDataFrame({'class': ['building'] * len(geometries), 'geometry': geometries}, crs="EPSG:5186")
+
+
+def simplify_polygon(polygon, tolerance=1.0, preserve_topology=True):
+
+    return polygon.simplify(tolerance, preserve_topology)

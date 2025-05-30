@@ -1,48 +1,42 @@
-<!-- app/templates/upload.html -->
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>건물 변화탐지 시스템</title>
+    <title>건물 변화탐지</title>
 </head>
 <body>
-    <h1>건물 변화탐지 API</h1>
+    <h1>GeoJSON 기반 건물 변화탐지</h1>
 
     <form action="/detect_from_image" method="post" enctype="multipart/form-data">
-        <label>현재 GeoTIFF 영상:</label><br>
-        <input type="file" name="geotiff_file" accept=".tif" required><br><br>
+        <label for="geotiff_file">GeoTIFF 파일:</label><br>
+        <input type="file" name="geotiff_file" required><br><br>
 
-        <label>과거 수치지도 (ZIP, SHP 포함):</label><br>
-        <input type="file" name="past_shp_zip" accept=".zip" required><br><br>
+        <label for="past_geojson_file">과거 GeoJSON 파일:</label><br>
+        <input type="file" name="past_geojson_file" required><br><br>
 
-        <label>해상도 (기본값: 20.0):</label><br>
-        <input type="number" name="resolution" step="0.1" value="20.0"><br><br>
+        <label for="resolution">해상도 (m/pixel):</label><br>
+        <input type="number" step="0.1" name="resolution" value="20.0"><br><br>
 
-        <label>오버랩 컷 임계값 (cut_threshold):</label><br>
-        <input type="number" name="cut_threshold" step="0.01" value="0.05"><br><br>
+        <label for="cut_threshold">절단 임계값:</label><br>
+        <input type="number" step="0.01" name="cut_threshold" value="0.05"><br><br>
 
-        <label>변화 임계값 (cd_threshold):</label><br>
-        <input type="number" name="cd_threshold" step="0.01" value="0.7"><br><br>
+        <label for="cd_threshold">변화 임계값:</label><br>
+        <input type="number" step="0.01" name="cd_threshold" value="0.7"><br><br>
 
-        <button type="submit">변화 탐지 시작</button>
+        <button type="submit">변화탐지 시작</button>
     </form>
 
     {% if result %}
+        <hr>
         <h2>결과</h2>
-        <p>해상도: {{ result.resolution }}</p>
-        <p>컷 임계값: {{ result.cut_threshold }}</p>
-        <p>변화 임계값: {{ result.cd_threshold }}</p>
-
-        {% if result.mask_image %}
-            <h3>추론 결과 마스크</h3>
-            <img src="{{ result.mask_image }}" alt="추론 마스크" style="max-width:500px;">
-        {% endif %}
-
-        <h3>결과 다운로드</h3>
-        <ul>
-            <li><a href="{{ result.dmap }}">과거 수치지도 결과 (Dmap)</a></li>
-            <li><a href="{{ result.seg }}">현재 추론 결과 (Seg)</a></li>
-        </ul>
+        <p><strong>해상도:</strong> {{ result.resolution }} m/pixel</p>
+        <p><strong>절단 임계값:</strong> {{ result.cut_threshold }}</p>
+        <p><strong>변화 임계값:</strong> {{ result.cd_threshold }}</p>
+        <p><strong>마스크 이미지:</strong><br>
+            <img src="{{ result.mask_image }}" alt="Mask Preview" width="400">
+        </p>
+        <p><a href="{{ result.dmap }}">DMap GeoJSON 다운로드</a></p>
+        <p><a href="{{ result.seg }}">Seg GeoJSON 다운로드</a></p>
     {% endif %}
 </body>
 </html>

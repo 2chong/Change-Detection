@@ -17,6 +17,7 @@ def run(geotiff, model, output_type='default',
     Perform object detection on a GeoTIFF
     """
     current_progress = 0
+
     def p(text, perc=0):
         nonlocal current_progress
         current_progress += perc
@@ -105,11 +106,7 @@ def run(geotiff, model, output_type='default',
             elif segmentor:
                 tile_mask = execute_segmentation(img, session, config)
                 merge_mask(tile_mask, mask, w, width, height, tiles_overlap, scale_factor)
-                # plt.figure(figsize=(6, 6))
-                # plt.imshow(mask, cmap="hot")
-                # plt.colorbar(label="Confidence")
-                # plt.title("Building Confidence Map")
-                # plt.show()
+
 
         p("Finalizing", 4)
 

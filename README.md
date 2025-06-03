@@ -1,63 +1,75 @@
-# GeoJSON 기반 건물 변화탐지 API
 
-이 프로젝트는 GeoTIFF 영상과 과거 GeoJSON 형식의 건물 데이터를 기반으로, 최신 건물 객체를 추론하고 공간 변화 탐지를 수행하는 FastAPI 기반 웹 애플리케이션입니다.
 
-## ✅ 주요 기능
-
-- GeoTIFF 영상을 기반으로 ONNX 모델을 사용해 건물 마스크 추론
-- 추론 결과를 벡터화하여 현재 건물 GeoJSON 생성
-- 사용자가 업로드한 과거 GeoJSON과 비교하여 변화 탐지 수행
-- 변화 유형에 따라 `dmap_result.geojson` 및 `seg_result.geojson`으로 출력
-
-## 🗂️ 폴더 구조
-
-```
-app/
-├── main.py                  # FastAPI 서버 로직
-├── templates/
-│   └── upload.html          # 웹 UI (파일 업로드 및 결과 시각화)
-├── static/
-│   ├── uploads/             # 업로드된 GeoTIFF 및 GeoJSON
-│   └── results/             # 추론 및 변화탐지 결과 (.tif, .png, .geojson)
-GeoDeep/
-└── model/
-    └── building_2005_deepness.onnx  # 사전 학습된 건물 추론 모델
-```
-
-## 🖼️ 웹 UI 사용 방법
-
-1. 메인 페이지 (`http://127.0.0.1:8000`) 접속
-2. GeoTIFF 영상과 과거 GeoJSON 파일 선택
-3. 해상도 및 임계값 설정 후 "변화탐지 시작" 클릭
-4. 결과 페이지에서 마스크 이미지와 GeoJSON 다운로드 가능
-
-## ⚙️ 실행 방법
+### 사용 방법
 
 ```bash
-uvicorn app.main:app --reload
+$env:dataset_path="/workspace/input"; $env:output_path="/workspace/output"; $env:model_path="/workspace/model"; docker compose run dt
 ```
+---
 
-## 📦 요구사항
+### 데이터 처리 과정
 
-- Python >= 3.8
-- FastAPI
-- Uvicorn
-- GeoPandas
-- Rasterio, NumPy, PIL 등
+### 1. 건물 추론
+1. 모델 및 설정 불러오기
+2. TIF 이미지 불러오기 및 config 설정
+3. 타일 분할 및 처리 준비
+4. 추론 실행, 타일 마스크 생성 및 병합
+5. 마스크 후처리
+6. GeoDataFrame(GDF) 변환 및 후처리
 
-```bash
-pip install -r requirements.txt
+### 2. 변화 탐지
+1. GDF 매칭 및 전처리
+2. 그래프 구성 및 객체 정제
+3. 그래프 기반 정량 지표 계산
+4. 변화 유형 분류
+
+---
+
+### 데이터
+
+### Input
+- 전처리된 **과거 수치지도** 및 **현재 영상**
+- `input/T1`, `input/T2` 폴더에 각각 저장
+
+### Output
+- `output/cur_result.geojson`: 현재 시점 건물 추론 결과
+- `output/prev_result.geojson`: 과거 시점 건물 추론 결과
+- `output/status.json`: 전체 파이프라인 진행도 상태
+---
+
+### 폴더 구조
 ```
+workspace/
+├── input/
+│   ├── T1/  # 과거 수치지도
+│   └── T2/  # 현재 영상
+├── model/
+│   └── building_2005_deepness.onnx
+├── output/
+│   └── cur_result.goejson
+│   └── prev_result.geojson
+│   └── status.json
+└── main.py
+```
+---
 
-## 🧠 모델 경로
+### 구성 파일
+- `model`: ONNX 형식의 모델 포함
+- `main.py`: 전체 파이프라인 실행 코드
+- `requirements.txt`: Python 의존 패키지 목록
 
-모델은 `GeoDeep/model/building_2005_deepness.onnx` 경로에 고정되어 있으며, 사용자 입력 없이 자동 사용됩니다.
+### 파라미터
 
-## 📤 입출력 형식
+```python
+parser.add_argument("-i", "--input", type=str, default="workspace/input", help="input folder containing T1/, T2/")
+parser.add_argument("-m", "--model", type=str, default="workspace/model", help="Model folder containing .onnx")
+parser.add_argument("-o", "--output", type=str, default="workspace/output", help="Output folder")
 
-- 입력: `.tif` (GeoTIFF), `.geojson`
-- 출력: `dmap_result.geojson`, `seg_result.geojson`, 마스크 이미지 (.png)
+parser.add_argument("-c", "--conf-threshold", type=float, default=None)
+parser.add_argument("-r", "--resolution", type=float, default=None)
+parser.add_argument("--classes", type=str, default=None)
+parser.add_argument("-t", "--max-threads", type=int, default=None)
 
-## 🙋 문의
-
-기술적 문의는 프로젝트 관리자에게 연락해주세요.
+parser.add_argument("--cut-threshold", type=float, default=0.05)
+parser.add_argument("--cd-threshold", type=float, default=0.7)
+```

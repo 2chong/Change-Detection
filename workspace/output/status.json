@@ -1,0 +1,15 @@
+{
+    "CurrentTask": "Done",
+    "ElapsedTime": {
+        "Loading input files": "0.01s",
+        "Loading ONNX Model": "5.42s",
+        "Loading GeoTIFF": "0.02s",
+        "Processing Tiles": "9.19s",
+        "PostProcessing": "0.26s",
+        "Generating Graph": "0.06s",
+        "Cal metrics": "0.24s",
+        "Classification": "0.0s",
+        "Done": "0.0s"
+    },
+    "Error": null
+}
